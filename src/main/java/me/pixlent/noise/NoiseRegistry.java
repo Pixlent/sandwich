@@ -10,7 +10,7 @@ public enum NoiseRegistry {
             .fastSimplex(FastSimplexNoiseGenerator.newBuilder()
                     .setSeed(0)
                     .build())
-            .octavate(5, 0.5, 1.2, FractalFunction.FBM, false)
+            .octavate(5, 0.4, 1.2, FractalFunction.FBM, false)
             .scale(0.005)
             .addModifier(new NoiseUtils.AbsClampNoiseModifier())
             .build()),
@@ -18,8 +18,16 @@ public enum NoiseRegistry {
             .fastSimplex(FastSimplexNoiseGenerator.newBuilder()
                     .setSeed(0)
                     .build())
-            .octavate(5, 0.7, 1.6, FractalFunction.FBM, true)
-            .scale(0.006)
+            .octavate(6, 0.6, 2, FractalFunction.FBM, false)
+            .scale(0.00075)
+            .addModifier(new TerrainGenerator.AbsClampNoiseModifier())
+            .build()),
+    CAVES(JNoise.newBuilder()
+            .fastSimplex(FastSimplexNoiseGenerator.newBuilder()
+                    .setSeed(0)
+                    .build())
+            .octavate(6, 0.3, 1.8, FractalFunction.FBM, true)
+            .scale(0.0111)
             .addModifier(new TerrainGenerator.AbsClampNoiseModifier())
             .build());
 
