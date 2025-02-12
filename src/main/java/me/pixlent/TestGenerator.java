@@ -3,6 +3,7 @@ package me.pixlent;
 import me.pixlent.utils.ExecutionTimer;
 import me.pixlent.utils.TrilinearInterpolator;
 import net.minestom.server.coordinate.Point;
+import net.minestom.server.coordinate.Pos;
 import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationUnit;
@@ -20,7 +21,6 @@ public class TestGenerator implements Generator {
 
     @Override
     public void generate(@NotNull GenerationUnit unit) {
-        final ExecutionTimer timer = new ExecutionTimer();
         final Point min = unit.absoluteStart();
         final Point max = unit.absoluteEnd();
 
@@ -32,8 +32,6 @@ public class TestGenerator implements Generator {
                 //generate2D(min, max, x, z, unit);
             }
         }
-
-        Main.addTime(timer.finished());
     }
 
     private void generate2D(Point min, Point max, int x, int z, GenerationUnit unit) {
@@ -76,7 +74,7 @@ public class TestGenerator implements Generator {
                                         (double) dz / SAMPLE_INTERVAL
                                 );
 
-                                Vec pos = new Vec(x + dx, y + dy, z + dz);
+                                Pos pos = new Pos(x + dx, y + dy, z + dz);
 
                                 unit.modifier().setBlock(pos,
                                         terrainDecorator.getBlock(pos, interpolatedDensity));

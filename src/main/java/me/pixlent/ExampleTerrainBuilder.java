@@ -17,7 +17,7 @@ public class ExampleTerrainBuilder extends TerrainBuilder {
             .add(140, 0.6)
             .add(170, 0.4)
             .add(210, 0.3)
-            .add(256, 0)
+            .add(319, 0)
             .build();
 
     ExampleTerrainBuilder(long seed) {

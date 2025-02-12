@@ -12,11 +12,11 @@ repositories {
 }
 
 dependencies {
-    implementation("net.minestom:minestom-snapshots:a521c4e7cd")
+    implementation("net.minestom:minestom-snapshots:3bdb950310")
     implementation("de.articdive:jnoise-pipeline:4.1.0")
-
-    compileOnly("org.projectlombok:lombok:1.18.26")
-    annotationProcessor("org.projectlombok:lombok:1.18.26")
-
+    implementation("com.github.CoolLoong:FastNoise2Bindings-Java:0.0.1")
     implementation("org.slf4j:slf4j-simple:2.0.16")
+
+    compileOnly("org.projectlombok:lombok:1.18.36")
+    annotationProcessor("org.projectlombok:lombok:1.18.36")
 }

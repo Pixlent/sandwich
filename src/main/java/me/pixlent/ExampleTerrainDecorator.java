@@ -1,7 +1,6 @@
 package me.pixlent;
 
-import net.minestom.server.coordinate.Pos;
-import net.minestom.server.coordinate.Vec;
+import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.block.Block;
 
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ public class ExampleTerrainDecorator extends TerrainDecorator {
     }
 
     @Override
-    Block getBlock(Vec pos, double density) {
+    Block getBlock(Point pos, double density) {
         Block block = Block.AIR;
 
         if (pos.blockY() < 64) block = Block.WATER;
