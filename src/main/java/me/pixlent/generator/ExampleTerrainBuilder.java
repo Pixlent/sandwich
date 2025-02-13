@@ -24,20 +24,19 @@ public class ExampleTerrainBuilder implements TerrainBuilder {
         this.seed = seed;
 
         density = new NoiseStack();
-        density.addLayer(new FractalNoiseLayer(0, 0.005f, new SimplexNoiseLayer(0, 0.005f), 6, 0.4f, 2.2f));
+        density.addLayer(new FractalNoiseLayer(0, 0.004f, new SimplexNoiseLayer(0, 0.05f), 5, 0.4f, 2.2f));
 
         continentalness = new NoiseStack();
-        continentalness.addLayer(new FractalNoiseLayer(0, 0.0005f, new SimplexNoiseLayer(0, 0.25f), 5, 0.4f, 2.2f));
-        continentalness.addModifier(new AbsClampModifier());
+        continentalness.addLayer(new FractalNoiseLayer(0, 0.001f, new SimplexNoiseLayer(0, 0.25f), 5, 0.5f, 2.4f));
         continentalness.addModifier(new SplineModifier(SplineInterpolator.builder()
-                .add(0.0, 0.0)
-                .add(0.15, 0.1)
-                .add(0.2, 0.3)
-                .add(0.3, 0.5)
-                .add(0.39, 0.6)
-                .add(0.433, 0.777)
-                .add(0.55, 0.888)
-                .add(0.7, 0.97)
+                .add(-1.0, -1.0)
+                .add(-0.7, -0.8)
+                .add(-0.6, -0.4)
+                .add(-0.4, 0)
+                .add(-0.22, 0.2)
+                .add(-0.134, 0.554)
+                .add(0.1, 0.776)
+                .add(0.4, 0.94)
                 .add(1, 1)
                 .build()));
 
@@ -53,12 +52,12 @@ public class ExampleTerrainBuilder implements TerrainBuilder {
 
     @Override
     public float getDensity(int x, int y, int z) {
-        int surfaceHeight = Math.round(continentalness.sample(x, z) * 128);
-        int offsetY = y - surfaceHeight + 100;
+        int surfaceHeight = Math.round(continentalness.sample(x, z) * 64);
+        int offsetY = y + surfaceHeight;
 
         float baseDensity = density.sample(x, offsetY, z);
-        float heightBias = (float) heightBiasInterpolator.interpolate(offsetY + 64);
+        float heightBias = (float) heightBiasInterpolator.interpolate(y + 64);
 
-        return baseDensity + (heightBias * (weirdness.sample(x, z) + 1) * 1.8f);
+        return baseDensity + (heightBias * (weirdness.sample(x, z) + 1) * 1.6f);
     }
 }
