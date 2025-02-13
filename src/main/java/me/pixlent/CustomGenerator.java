@@ -3,8 +3,8 @@ package me.pixlent;
 import me.pixlent.generator.DecorationData;
 import me.pixlent.generator.IndependentTerrainDecorator;
 import me.pixlent.generator.DensityFunction;
+import me.pixlent.generator.TerrainBuilder;
 import net.minestom.server.coordinate.Point;
-import net.minestom.server.coordinate.Vec;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationUnit;
 import net.minestom.server.instance.generator.Generator;
@@ -12,11 +12,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class CustomGenerator implements Generator {
     private final DensityFunction terrain;
-    private final IndependentTerrainDecorator terrainDecorator;
+    private final TerrainBuilder terrainBuilder;
 
-    public CustomGenerator(DensityFunction terrain, IndependentTerrainDecorator terrainDecorator) {
-        this.terrain = terrain;
-        this.terrainDecorator = terrainDecorator;
+    public CustomGenerator(DensityFunction terrain) {
+        this.DensityFunction = terrain;
     }
 
     @Override
@@ -35,8 +34,10 @@ public class CustomGenerator implements Generator {
                     Point world = min.add(x, y - 1, z);
                     float density = terrain.apply(world);
 
+
                     if (density > 0 && terrain.apply(x, y + 1, z) < 0)
                         terrainDecorator.runSurfaceCondition(new DecorationData(new Vec(x, y, z), world, generation));
+
                     Block block = Block.AIR;
 
                     if (world.blockY() < 64) block = Block.WATER;

@@ -30,15 +30,20 @@ public class ExampleTerrainBuilder implements DensityFunction {
         continentalness = new NoiseStack();
         continentalness.addLayer(new FractalNoiseLayer(0, 0.0007f, new SimplexNoiseLayer(0, Float.NaN), 6, 0.6f, 2.3f));
         continentalness.addModifier(new AbsClampModifier());
+
+        density.addLayer(new FractalNoiseLayer(0, 0.004f, new SimplexNoiseLayer(0, 0.05f), 5, 0.4f, 2.2f));
+
+        continentalness = new NoiseStack();
+        continentalness.addLayer(new FractalNoiseLayer(0, 0.001f, new SimplexNoiseLayer(0, 0.25f), 5, 0.5f, 2.4f));
         continentalness.addModifier(new SplineModifier(SplineInterpolator.builder()
-                .add(0.0, 0.0)
-                .add(0.15, 0.1)
-                .add(0.2, 0.3)
-                .add(0.3, 0.5)
-                .add(0.39, 0.6)
-                .add(0.433, 0.777)
-                .add(0.55, 0.888)
-                .add(0.7, 0.97)
+                .add(-1.0, -1.0)
+                .add(-0.7, -0.8)
+                .add(-0.6, -0.4)
+                .add(-0.4, 0)
+                .add(-0.22, 0.2)
+                .add(-0.134, 0.554)
+                .add(0.1, 0.776)
+                .add(0.4, 0.94)
                 .add(1, 1)
                 .build()));
 
@@ -56,5 +61,9 @@ public class ExampleTerrainBuilder implements DensityFunction {
         float heightBias = (float) heightBiasInterpolator.interpolate(offsetY + 64);
 
         return baseDensity + (heightBias * (weirdness.sample(x, z) + 1) * 1.8f);
+    }
+
+    public int getSeed() {
+        return seed;
     }
 }
