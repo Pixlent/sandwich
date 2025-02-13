@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Performs spline interpolation given a set of control points.
@@ -39,7 +40,22 @@ public class SplineInterpolator {
 
             @Override
             public SplineInterpolator build() {
-                return createMonotoneCubicSpline(controlPoints);
+                SplineInterpolator interpolator = createMonotoneCubicSpline(controlPoints);
+//                // get stacktrace
+//                var stacktraceforwards = Stream.of(Thread.currentThread().getStackTrace())
+//                        .skip(1)
+//                        .map(StackTraceElement::toString)
+//                        .toArray(String[]::new);
+//
+//                // reverse the stacktrace
+//                var stacktrace = new String[stacktraceforwards.length];
+//                for (int i = 0; i < stacktraceforwards.length; i++) {
+//                    stacktrace[i] = stacktraceforwards[stacktraceforwards.length - i - 1];
+//                }
+//
+//                var str = String.join(" -> ", stacktrace);
+//                System.out.println(str + ": \n" + interpolator.toGraph());
+                return interpolator;
             }
         };
     }

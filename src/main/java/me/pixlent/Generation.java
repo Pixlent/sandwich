@@ -1,22 +1,22 @@
 package me.pixlent;
 
-import me.pixlent.generator.TerrainBuilder;
+import me.pixlent.generator.DensityFunction;
 import me.pixlent.utils.TrilinearInterpolator;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.generator.GenerationUnit;
 
 public class Generation {
     public final GenerationUnit unit;
-    public final TerrainBuilder terrainBuilder;
+    public final DensityFunction densityFunction;
     private final TrilinearInterpolator trilinearInterpolator = new TrilinearInterpolator();
     private final float[][][] cache;
 
     public final int CHUNK_SIZE = 16;
     public final int SAMPLE_INTERVAL = 4;
 
-    Generation(GenerationUnit unit, TerrainBuilder terrainBuilder) {
+    Generation(GenerationUnit unit, DensityFunction densityFunction) {
         this.unit = unit;
-        this.terrainBuilder = terrainBuilder;
+        this.densityFunction = densityFunction;
 
         final Point min = unit.absoluteStart();
         final Point max = unit.absoluteEnd();
@@ -71,7 +71,7 @@ public class Generation {
                 local.blockZ() >= 0 && local.blockZ() < cache[0][0].length)
 
             return cache[local.blockX()][local.blockY()][local.blockZ()];
-        else return terrainBuilder.getDensity(world.blockX(), world.blockY(), world.blockZ());
+        else return densityFunction.apply(world.blockX(), world.blockY(), world.blockZ());
     }
 
     private void generateCache() {
@@ -85,7 +85,7 @@ public class Generation {
         for (int x = 0; x < size.blockX(); x += SAMPLE_INTERVAL - 1) {
             for (int z = 0; z < size.blockZ(); z += SAMPLE_INTERVAL - 1) {
                 for (int y = 0; y < size.blockY(); y += SAMPLE_INTERVAL - 1) {
-                    float density = terrainBuilder.getDensity(min.blockX() + x, min.blockY() + y, min.blockZ() + z);
+                    float density = densityFunction.apply(min.blockX() + x, min.blockY() + y, min.blockZ() + z);
                     setDensity(x, y, z, density);
                     //if (density > 0) unit.modifier().setBlock(min.blockX() + x, min.blockY() + y, min.blockZ() + z, Block.COBBLESTONE);
                 }

@@ -1,6 +1,11 @@
 package me.pixlent.generator;
 
-@FunctionalInterface
+import net.minestom.server.coordinate.Point;
+
 public interface DensityFunction {
-    float apply(float x, float y, float z);
+    float apply(int x, int y, int z);
+
+    default float apply(Point pos) {
+        return apply(pos.blockX(), pos.blockY(), pos.blockZ());
+    }
 }

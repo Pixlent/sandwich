@@ -2,7 +2,8 @@ package me.pixlent;
 
 import me.pixlent.commands.GamemodeCommand;
 import me.pixlent.generator.ExampleIndependentTerrainDecorator;
-import me.pixlent.generator.ExampleTerrainDecorator;
+import me.pixlent.utils.Hash;
+import me.pixlent.utils.HotReload;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.adventure.audience.Audiences;
@@ -14,6 +15,7 @@ import net.minestom.server.event.GlobalEventHandler;
 import net.minestom.server.event.entity.EntitySpawnEvent;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.server.ServerTickMonitorEvent;
+import net.minestom.server.instance.Chunk;
 import net.minestom.server.instance.InstanceContainer;
 import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.instance.LightingChunk;
@@ -21,11 +23,18 @@ import net.minestom.server.monitoring.BenchmarkManager;
 import net.minestom.server.monitoring.TickMonitor;
 import net.minestom.server.potion.Potion;
 import net.minestom.server.potion.PotionEffect;
+import net.minestom.server.timer.TaskSchedule;
 import net.minestom.server.utils.MathUtils;
 import net.minestom.server.utils.time.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
@@ -39,22 +48,27 @@ public class Main {
         System.setProperty("minestom.chunk-view-distance", "32");
 
         MinecraftServer minecraftServer = MinecraftServer.init();
-        InstanceManager instanceManager = MinecraftServer.getInstanceManager();
-        InstanceContainer instanceContainer = instanceManager.createInstanceContainer();
-        //InterpolatedGenerator generator = new InterpolatedGenerator(new ExampleTerrainBuilder(0), new ExampleTerrainDecorator());
-        CustomGenerator generator = new CustomGenerator(
-                new me.pixlent.generator.ExampleTerrainBuilder(0),
-                new ExampleIndependentTerrainDecorator());
 
-        instanceContainer.setChunkSupplier(LightingChunk::new);
-        instanceContainer.setGenerator(generator);
-        instanceContainer.setTimeRate(0);
+        AtomicReference<InstanceContainer> instanceContainer = HotReload.hotReload(() -> {
+            InstanceContainer instance = MinecraftServer.getInstanceManager().createInstanceContainer();
+
+            instance.setChunkSupplier(LightingChunk::new);
+            instance.setTimeRate(0);
+
+            //InterpolatedGenerator generator = new InterpolatedGenerator(new ExampleTerrainBuilder(0), new ExampleTerrainDecorator());
+            CustomGenerator generator = new CustomGenerator(
+                    new me.pixlent.generator.ExampleTerrainBuilder(0),
+                    new ExampleIndependentTerrainDecorator());
+            instance.setGenerator(generator);
+
+            return instance;
+        });
 
         // Add an event callback to specify the spawning instance (and the spawn position)
         GlobalEventHandler eventHandler = MinecraftServer.getGlobalEventHandler();
         eventHandler.addListener(AsyncPlayerConfigurationEvent.class, event -> {
             final Player player = event.getPlayer();
-            event.setSpawningInstance(instanceContainer);
+            event.setSpawningInstance(instanceContainer.get());
             player.setRespawnPoint(new Pos(-13, 93, 48));
         });
 

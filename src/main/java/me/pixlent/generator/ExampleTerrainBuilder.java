@@ -3,12 +3,13 @@ package me.pixlent.generator;
 import me.pixlent.noise2.FractalNoiseLayer;
 import me.pixlent.noise2.NoiseStack;
 import me.pixlent.noise2.SimplexNoiseLayer;
+import me.pixlent.noise2.combiner.LayerCombiner;
+import me.pixlent.noise2.combiner.WeightCombiner;
 import me.pixlent.noise2.modifier.AbsClampModifier;
 import me.pixlent.noise2.modifier.SplineModifier;
 import me.pixlent.utils.SplineInterpolator;
 
-public class ExampleTerrainBuilder implements TerrainBuilder {
-    private final int seed;
+public class ExampleTerrainBuilder implements DensityFunction {
     private final NoiseStack density;
     private final NoiseStack continentalness;
     private final NoiseStack weirdness;
@@ -21,9 +22,15 @@ public class ExampleTerrainBuilder implements TerrainBuilder {
             .build();
 
     public ExampleTerrainBuilder(int seed) {
-        this.seed = seed;
 
         density = new NoiseStack();
+        density.addLayer(new FractalNoiseLayer(0, 0.007f, new SimplexNoiseLayer(0, Float.NaN), 4, 0.2f, 2.4f));
+        density.addModifier(v -> v * 0.5f);
+
+        continentalness = new NoiseStack();
+        continentalness.addLayer(new FractalNoiseLayer(0, 0.0007f, new SimplexNoiseLayer(0, Float.NaN), 6, 0.6f, 2.3f));
+        continentalness.addModifier(new AbsClampModifier());
+
         density.addLayer(new FractalNoiseLayer(0, 0.004f, new SimplexNoiseLayer(0, 0.05f), 5, 0.4f, 2.2f));
 
         continentalness = new NoiseStack();
@@ -41,23 +48,22 @@ public class ExampleTerrainBuilder implements TerrainBuilder {
                 .build()));
 
         weirdness = new NoiseStack();
-        weirdness.addLayer(new SimplexNoiseLayer(1, 0.01f));
+        weirdness.addLayer(new SimplexNoiseLayer(1, 0.005f));
         weirdness.addModifier(new AbsClampModifier());
     }
 
     @Override
-    public int getSeed() {
-        return seed;
-    }
-
-    @Override
-    public float getDensity(int x, int y, int z) {
-        int surfaceHeight = Math.round(continentalness.sample(x, z) * 64);
-        int offsetY = y + surfaceHeight;
+    public float apply(int x, int y, int z) {
+        int surfaceHeight = Math.round(continentalness.sample(x, z) * 128);
+        int offsetY = y - surfaceHeight + 100;
 
         float baseDensity = density.sample(x, offsetY, z);
-        float heightBias = (float) heightBiasInterpolator.interpolate(y + 64);
+        float heightBias = (float) heightBiasInterpolator.interpolate(offsetY + 64);
 
-        return baseDensity + (heightBias * (weirdness.sample(x, z) + 1) * 1.6f);
+        return baseDensity + (heightBias * (weirdness.sample(x, z) + 1) * 1.8f);
+    }
+
+    public int getSeed() {
+        return seed;
     }
 }
