@@ -1,6 +1,6 @@
 package me.pixlent.utils;
 
-import me.pixlent.ExampleTerrainBuilder;
+import me.pixlent.generator.ExampleTerrainBuilder;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.instance.Chunk;
@@ -10,10 +10,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class HotReload {

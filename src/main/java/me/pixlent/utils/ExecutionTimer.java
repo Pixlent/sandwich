@@ -5,14 +5,14 @@ package me.pixlent.utils;
  * Initialize the object to begin, and run {@link #finished()}
  */
 public class ExecutionTimer {
-    private final long startTime = System.currentTimeMillis();
+    private final long startTime = System.nanoTime();
 
     /**
      * Run method when your execution has finished
      *
-     * @return The time used for execution in milliseconds
+     * @return The time used for execution in milliseconds (with decimals)
      */
-    public long finished() {
-        return System.currentTimeMillis() - startTime;
+    public double finished() {
+        return (System.nanoTime() - startTime) / 1_000_000.0;
     }
 }
