@@ -183,39 +183,31 @@ public class ProcBlockPlacer implements Procedural {
         final int localY = (int)(wy - context.min.y());
         final int localZ = (int)(wz - context.min.z());
 
-        final int x0 = (int) (double) localX;
-        final int x1 = x0 + 1;
-        final int y0 = (int) (double) localY;
-        final int y1 = y0 + 1;
-        final int z0 = (int) (double) localZ;
-        final int z1 = z0 + 1;
+        final int x0 = Math.max(0, Math.min(context.size.x() - 1, localX));
+        final int x1 = Math.max(0, Math.min(context.size.x() - 1, localX + 1));
+        final int y0 = Math.max(0, Math.min(context.size.y() - 1, localY));
+        final int y1 = Math.max(0, Math.min(context.size.y() - 1, localY + 1));
+        final int z0 = Math.max(0, Math.min(context.size.z() - 1, localZ));
+        final int z1 = Math.max(0, Math.min(context.size.z() - 1, localZ + 1));
 
         final double fx = localX - x0;
         final double fy = localY - y0;
         final double fz = localZ - z0;
 
-        final double c000 = getDensitySafe(channel, x0, y0, z0);
-        final double c001 = getDensitySafe(channel, x0, y0, z1);
-        final double c010 = getDensitySafe(channel, x0, y1, z0);
-        final double c011 = getDensitySafe(channel, x0, y1, z1);
-        final double c100 = getDensitySafe(channel, x1, y0, z0);
-        final double c101 = getDensitySafe(channel, x1, y0, z1);
-        final double c110 = getDensitySafe(channel, x1, y1, z0);
-        final double c111 = getDensitySafe(channel, x1, y1, z1);
+        final double c000 = channel.get(x0, y0, z0);
+        final double c001 = channel.get(x0, y0, z1);
+        final double c010 = channel.get(x0, y1, z0);
+        final double c011 = channel.get(x0, y1, z1);
+        final double c100 = channel.get(x1, y0, z0);
+        final double c101 = channel.get(x1, y0, z1);
+        final double c110 = channel.get(x1, y1, z0);
+        final double c111 = channel.get(x1, y1, z1);
 
         return trilinearInterpolate(
                 c000, c001, c010, c011,
                 c100, c101, c110, c111,
                 fx, fy, fz
         );
-    }
-
-    private double getDensitySafe(final NoiseVoxelChannel channel, final int x, final int y, final int z) {
-        try {
-            return channel.get(x, y, z);
-        } catch (final Exception e) {
-            return 0.0;
-        }
     }
 
     private double trilinearInterpolate(
