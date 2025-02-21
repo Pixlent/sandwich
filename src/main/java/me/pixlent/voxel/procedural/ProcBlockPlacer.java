@@ -1,8 +1,6 @@
 package me.pixlent.voxel.procedural;
 
 import me.pixlent.SlopeBlock;
-import me.pixlent.voxel.GenericPixelChannel;
-import me.pixlent.voxel.GenericVoxelChannel;
 import me.pixlent.voxel.Voxel;
 import me.pixlent.voxel.VoxelContext;
 import me.pixlent.voxel.noise.NoisePixelChannel;
@@ -10,26 +8,25 @@ import me.pixlent.voxel.noise.NoiseVoxelChannel;
 import net.minestom.server.coordinate.Point;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.instance.generator.GenerationUnit;
-import net.minestom.server.instance.generator.UnitModifier;
 
 import java.util.List;
 
 public class ProcBlockPlacer implements Procedural {
     private final GenerationUnit unit;
     private static final List<SlopeBlock> SURFACE_SLOPE_BLOCKS = List.of(
-            new SlopeBlock(20, Block.MOSS_BLOCK),
-            new SlopeBlock(75, Block.GRASS_BLOCK),
-            new SlopeBlock(80, Block.COBBLESTONE),
-            new SlopeBlock(85, Block.STONE)
+            new SlopeBlock(30, Block.MOSS_BLOCK),
+            new SlopeBlock(60, Block.GRASS_BLOCK),
+            new SlopeBlock(100, Block.COBBLESTONE),
+            new SlopeBlock(120, Block.STONE)
     );
     private static final List<SlopeBlock> WATER_SLOPE_BLOCKS = List.of(
-            new SlopeBlock(45, Block.GRAVEL),
-            new SlopeBlock(75, Block.STONE),
+            new SlopeBlock(20, Block.GRAVEL),
+            new SlopeBlock(35, Block.STONE),
             new SlopeBlock(Double.MAX_VALUE, Block.STONE)
     );
     private static final List<SlopeBlock> BEACH_SLOPE_BLOCKS = List.of(
-            new SlopeBlock(60, Block.SAND),
-            new SlopeBlock(120, Block.SMOOTH_SANDSTONE),
+            new SlopeBlock(15, Block.SAND),
+            new SlopeBlock(30, Block.SMOOTH_SANDSTONE),
             new SlopeBlock(Double.MAX_VALUE, Block.SAND)
     );
 
@@ -70,7 +67,7 @@ public class ProcBlockPlacer implements Procedural {
 
                     if (world.y() < 64) block = Block.WATER;
                     if (density > 0f) {
-                        block = Block.STONE;
+                        block = Block.BEDROCK;
 
                         float white = whiteChannel.get(x, z);
 
@@ -82,6 +79,7 @@ public class ProcBlockPlacer implements Procedural {
 
                         if (densityChannel.get(x, y + 1, z) < 0f) {
                             final double slope = calculateSlope(context, new Voxel(x, y, z), world);
+                            System.out.println(slope);
                             if (world.y() >= 65 - beachTransitionChannel.get(x, z)) {
                                 for (final SlopeBlock slopeBlock : SURFACE_SLOPE_BLOCKS) {
                                     if (slope <= slopeBlock.slopeDegree()) {
@@ -147,36 +145,93 @@ public class ProcBlockPlacer implements Procedural {
         }
     }
 
-    private double calculateSlope(final VoxelContext context, Voxel local, Voxel world) {
-        final int radius = 1;
-        final double threshold = 0; // Density threshold for solid blocks
+    private double calculateSlope(final VoxelContext context, final Voxel local, final Voxel world) {
+        final NoiseVoxelChannel densityChannel = (NoiseVoxelChannel) context.getChannel("density", Float.class);
 
-        NoiseVoxelChannel densityChannel = (NoiseVoxelChannel) context.getChannel("density", Float.class);
+        final double wx = world.x();
+        final double wy = world.y();
+        final double wz = world.z();
 
-        double maxDiff = 0;
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dy = -radius; dy <= radius; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (dx == 0 && dy == 0 && dz == 0) continue;
+        final double h = 1.0;
 
-                    double centerDensity = densityChannel.get(local.x(), local.y(), local.z());
-                    double neighborDensity = densityChannel.getSafe(local.x(), local.y(), local.z());
+        final double px = sampleDensity(densityChannel, context, wx + h, wy, wz);
+        final double nx = sampleDensity(densityChannel, context, wx - h, wy, wz);
+        final double py = sampleDensity(densityChannel, context, wx, wy + h, wz);
+        final double ny = sampleDensity(densityChannel, context, wx, wy - h, wz);
+        final double pz = sampleDensity(densityChannel, context, wx, wy, wz + h);
+        final double nz = sampleDensity(densityChannel, context, wx, wy, wz - h);
 
-                    // Calculate the difference in density
-                    double diff = Math.abs(centerDensity - neighborDensity);
+        final double gx = (px - nx) / (2.0 * h);
+        final double gy = (py - ny) / (2.0 * h);
+        final double gz = (pz - nz) / (2.0 * h);
 
-                    // If the densities are on opposite sides of the threshold, calculate the approximate height difference
-                    if ((centerDensity - threshold) * (neighborDensity - threshold) < 0) {
-                        double heightDiff = Math.abs(dy + (threshold - centerDensity) / (neighborDensity - centerDensity));
-                        diff = Math.max(diff, heightDiff);
-                    }
-
-                    maxDiff = Math.max(maxDiff, diff);
-                }
-            }
+        final double gradientLength = Math.sqrt(gx * gx + gy * gy + gz * gz);
+        if (gradientLength < 1e-6) {
+            return 0.0;
         }
 
-        return Math.toDegrees(Math.atan(maxDiff / radius));
+        final double ny_norm = -gy / gradientLength;
+
+        double dotProduct = ny_norm;
+        dotProduct = Math.max(-1.0, Math.min(1.0, dotProduct));
+
+        return Math.toDegrees(Math.acos(dotProduct));
+    }
+
+    private double sampleDensity(final NoiseVoxelChannel channel, final VoxelContext context, final double wx, final double wy, final double wz) {
+        final int localX = (int)(wx - context.min.x());
+        final int localY = (int)(wy - context.min.y());
+        final int localZ = (int)(wz - context.min.z());
+
+        final int x0 = (int) (double) localX;
+        final int x1 = x0 + 1;
+        final int y0 = (int) (double) localY;
+        final int y1 = y0 + 1;
+        final int z0 = (int) (double) localZ;
+        final int z1 = z0 + 1;
+
+        final double fx = localX - x0;
+        final double fy = localY - y0;
+        final double fz = localZ - z0;
+
+        final double c000 = getDensitySafe(channel, x0, y0, z0);
+        final double c001 = getDensitySafe(channel, x0, y0, z1);
+        final double c010 = getDensitySafe(channel, x0, y1, z0);
+        final double c011 = getDensitySafe(channel, x0, y1, z1);
+        final double c100 = getDensitySafe(channel, x1, y0, z0);
+        final double c101 = getDensitySafe(channel, x1, y0, z1);
+        final double c110 = getDensitySafe(channel, x1, y1, z0);
+        final double c111 = getDensitySafe(channel, x1, y1, z1);
+
+        return trilinearInterpolate(
+                c000, c001, c010, c011,
+                c100, c101, c110, c111,
+                fx, fy, fz
+        );
+    }
+
+    private double getDensitySafe(final NoiseVoxelChannel channel, final int x, final int y, final int z) {
+        try {
+            return channel.get(x, y, z);
+        } catch (final Exception e) {
+            return 0.0;
+        }
+    }
+
+    private double trilinearInterpolate(
+            final double c000, final double c001, final double c010, final double c011,
+            final double c100, final double c101, final double c110, final double c111,
+            final double x, final double y, final double z
+    ) {
+        final double c00 = c000 * (1 - x) + c100 * x;
+        final double c01 = c001 * (1 - x) + c101 * x;
+        final double c10 = c010 * (1 - x) + c110 * x;
+        final double c11 = c011 * (1 - x) + c111 * x;
+
+        final double c0 = c00 * (1 - y) + c10 * y;
+        final double c1 = c01 * (1 - y) + c11 * y;
+
+        return c0 * (1 - z) + c1 * z;
     }
 
     private void placeTree(VoxelContext context, int x, int z, Voxel world) {
