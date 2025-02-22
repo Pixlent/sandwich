@@ -16,8 +16,14 @@ public class ProcBlockPlacer implements Procedural {
     private static final List<SlopeBlock> SURFACE_SLOPE_BLOCKS = List.of(
             new SlopeBlock(30, Block.MOSS_BLOCK),
             new SlopeBlock(60, Block.GRASS_BLOCK),
-            new SlopeBlock(100, Block.COBBLESTONE),
-            new SlopeBlock(120, Block.STONE)
+            new SlopeBlock(70, Block.ROOTED_DIRT),
+            new SlopeBlock(80, Block.ANDESITE),
+            new SlopeBlock(90, Block.COBBLESTONE),
+            new SlopeBlock(110, Block.DEAD_TUBE_CORAL_BLOCK),
+            new SlopeBlock(120, Block.DEAD_FIRE_CORAL_BLOCK),
+            new SlopeBlock(130, Block.DEAD_BUBBLE_CORAL_BLOCK),
+            new SlopeBlock(140, Block.DEAD_HORN_CORAL_BLOCK),
+            new SlopeBlock(Integer.MAX_VALUE, Block.DEAD_BRAIN_CORAL_BLOCK)
     );
     private static final List<SlopeBlock> WATER_SLOPE_BLOCKS = List.of(
             new SlopeBlock(20, Block.GRAVEL),
@@ -67,39 +73,27 @@ public class ProcBlockPlacer implements Procedural {
 
                     if (world.y() < 64) block = Block.WATER;
                     if (density > 0f) {
-                        block = Block.BEDROCK;
-
-                        float white = whiteChannel.get(x, z);
-
-                        if (world.y() > 62) {
-                            if (densityChannel.get(x, y + 4, z) < 0f && white > 0) block = Block.DIRT;
-                            if (densityChannel.get(x, y + 3, z) < 0f) block = Block.DIRT;
-                            if (densityChannel.get(x, y + 2, z) < 0f) block = Block.DIRT;
-                        }
-
-                        if (densityChannel.get(x, y + 1, z) < 0f) {
-                            final double slope = calculateSlope(context, new Voxel(x, y, z), world);
-                            System.out.println(slope);
-                            if (world.y() >= 65 - beachTransitionChannel.get(x, z)) {
-                                for (final SlopeBlock slopeBlock : SURFACE_SLOPE_BLOCKS) {
-                                    if (slope <= slopeBlock.slopeDegree()) {
-                                        block = slopeBlock.blockType();
-                                        break;
-                                    }
+                        final double slope = calculateSlope(context, new Voxel(x, y, z), world);
+                        block = Block.STONE;
+                        if (world.y() >= 65 - beachTransitionChannel.get(x, z)) {
+                            for (final SlopeBlock slopeBlock : SURFACE_SLOPE_BLOCKS) {
+                                if (slope <= slopeBlock.slopeDegree()) {
+                                    block = slopeBlock.blockType();
+                                    break;
                                 }
-                            } else if(world.y() > 60 - oceanTransitionChannel.get(x, z)) {
-                                for (final SlopeBlock slopeBlock : BEACH_SLOPE_BLOCKS) {
-                                    if (slope <= slopeBlock.slopeDegree()) {
-                                        block = slopeBlock.blockType();
-                                        break;
-                                    }
+                            }
+                        } else if (world.y() > 60 - oceanTransitionChannel.get(x, z)) {
+                            for (final SlopeBlock slopeBlock : BEACH_SLOPE_BLOCKS) {
+                                if (slope <= slopeBlock.slopeDegree()) {
+                                    block = slopeBlock.blockType();
+                                    break;
                                 }
-                            } else {
-                                for (final SlopeBlock slopeBlock : WATER_SLOPE_BLOCKS) {
-                                    if (slope <= slopeBlock.slopeDegree()) {
-                                        block = slopeBlock.blockType();
-                                        break;
-                                    }
+                            }
+                        } else {
+                            for (final SlopeBlock slopeBlock : WATER_SLOPE_BLOCKS) {
+                                if (slope <= slopeBlock.slopeDegree()) {
+                                    block = slopeBlock.blockType();
+                                    break;
                                 }
                             }
                         }
@@ -136,8 +130,6 @@ public class ProcBlockPlacer implements Procedural {
                             }
                         }
                     }
-
-                    //boolean isManual = (x % spacing == 0) && (y % spacing == 0) && (z % spacing == 0);
 
                     if (!block.isAir()) unit.modifier().setBlock(world.x(), world.y(), world.z(), block);
                 }
