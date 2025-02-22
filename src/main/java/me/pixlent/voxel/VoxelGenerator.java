@@ -42,34 +42,36 @@ public class VoxelGenerator implements Generator {
 
         VoxelSector voxelSector = new VoxelSector(Voxel.from(unit.absoluteStart()), Voxel.from(unit.size()));
 
+        int customSeed = 12345; // Set your custom seed here
+
         NoisePixelChannel whiteChannel = new NoisePixelChannel(
                 Voxel.from(unit.absoluteStart()),
                 width, depth,
-                whiteNoise, hash("white"), 1f, 1);
+                whiteNoise, customSeed, 1f, 1);
         NoisePixelChannel surfaceChannel = new NoisePixelChannel(
                 Voxel.from(unit.absoluteStart()),
                 width, height,
-                surfaceNoise, hash("surface"), 0.0025f, 4);
+                surfaceNoise, customSeed, 0.0025f, 4);
         NoisePixelChannel grassChannel = new NoisePixelChannel(
                 Voxel.from(unit.absoluteStart()),
                 width, height,
-                clusterNoise, hash("grass"), 0.015f, 4);
+                clusterNoise, customSeed, 0.015f, 4);
         NoisePixelChannel flowerChannel = new NoisePixelChannel(
                 Voxel.from(unit.absoluteStart()),
                 width, height,
-                clusterNoise, hash("flowers"), 0.04f, 4);
+                clusterNoise, customSeed, 0.04f, 4);
         NoisePixelChannel beachTransitionChannel = new NoisePixelChannel(
                 Voxel.from(unit.absoluteStart()),
                 width, height,
-                clusterNoise, hash("beach_transition"), 0.02f, 4);
+                clusterNoise, customSeed, 0.02f, 4);
         NoisePixelChannel oceanTransitionChannel = new NoisePixelChannel(
                 Voxel.from(unit.absoluteStart()),
                 width, height,
-                clusterNoise, hash("ocean_transition"), 0.02f, 4);
+                clusterNoise, customSeed, 0.02f, 4);
         NoiseVoxelChannel densityChannel = new NoiseVoxelChannel(
                 Voxel.from(unit.absoluteStart()),
                 width, height, depth,
-                densityNoise, hash("density"), 0.003f, 4);
+                densityNoise, customSeed, 0.003f, 4);
 
         voxelSector.createChannel("white", whiteChannel);
         voxelSector.createChannel("surface_height", surfaceChannel);
